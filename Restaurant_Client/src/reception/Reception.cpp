@@ -149,7 +149,7 @@ void Reception::create_qml_tables() {
 	m_tables->setResizeMode(QQuickWidget::SizeRootObjectToView);
 	m_tables->setAttribute(Qt::WA_TranslucentBackground);
 	m_tables->setClearColor(QColor("#dddbf1"));
-	m_tables->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/tables.qml"));
+	m_tables->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/Tables.qml"));
 
 	QLayout* layout = ui.tables_widget->layout();
 	if (!layout) {
@@ -173,7 +173,7 @@ void Reception::create_qml_reservations() {
 				resv_create_connections();
 		});
 
-	m_reservations->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/reservations.qml"));
+	m_reservations->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/Reservations.qml"));
 
 	m_reservations->setMinimumSize(100, 100);
 	m_reservations->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -242,7 +242,7 @@ void Reception::createQmlAdvanced() {
 				a_create_connections();
 		});
 
-	m_advanced->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/filterPanel.qml"));
+	m_advanced->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/FilterPanel.qml"));
 	m_advanced->setFixedSize(w_width + 40, 650);
 
 	m_advanced->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
@@ -429,7 +429,7 @@ void Reception::create_qml_config() {
 
 	m_config = new QQuickWidget(nullptr);
 	m_config->setResizeMode(QQuickWidget::SizeRootObjectToView);
-	m_config->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/config.qml"));
+	m_config->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/Config.qml"));
 	m_config->setFixedSize(220, 160);
 
 	m_config->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);

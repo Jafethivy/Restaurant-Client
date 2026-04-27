@@ -34,7 +34,7 @@ ReceptionController::~ReceptionController()
 {}
 
 void ReceptionController::on_end_session() {
-	emit updateSession(0);
+	emit updateSession();
 	emit endSession();
 }
 

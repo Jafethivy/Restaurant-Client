@@ -25,6 +25,8 @@ find_package(Qt${QT_VERSION_MAJOR}
         Quick
         QuickWidgets
         Qml
+        Network
+        HttpServer
 )
 qt_standard_project_setup()
 
@@ -63,12 +65,26 @@ set(SRC
     ${RECEPTION}/ReceptionController.cpp
 )
 
+set(AUTH_SERVICE
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/authService
+)
+set(RECEPTION_SERVICE
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/receptionService
+)
+set(SERVICES
+    ${AUTH_SERVICE}/AuthService.h
+    ${AUTH_SERVICE}/AuthService.cpp
+    ${RECEPTION_SERVICE}/ReservationService.h
+    ${RECEPTION_SERVICE}/ReservationService.cpp
+)
+
 set(PROJECT_SOURCES
     main.cpp
     AppContext.h
     AppContext.cpp
     ${VIEW}
     ${SRC}
+    ${SERVICES}
 )
 qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
@@ -82,11 +98,11 @@ qt_add_qml_module(${PROJECT_NAME}
     VERSION 1.0
     
     QML_FILES
-        view/qml/reception/reservations.qml
-        view/qml/reception/reception.qml
-        view/qml/reception/config.qml
-        view/qml/reception/tables.qml
-        view/qml/reception/filterPanel.qml
+        view/qml/reception/Reservations.qml
+        view/qml/reception/Reception.qml
+        view/qml/reception/Config.qml
+        view/qml/reception/Tables.qml
+        view/qml/reception/FilterPanel.qml
 
         view/qml/reception/filterComponents/SectionLabel.qml
         view/qml/reception/filterComponents/ToggleFilterButton.qml
@@ -111,4 +127,6 @@ target_link_libraries(${PROJECT_NAME}
     Qt::Quick
     Qt::QuickWidgets
     Qt::Qml
+    Qt::Network
+    Qt::HttpServer
 )

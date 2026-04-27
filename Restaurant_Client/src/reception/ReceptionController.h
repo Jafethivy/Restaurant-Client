@@ -17,8 +17,7 @@ public:
 	void editedReservationQml(QVariantMap n_data);
 
 signals:
-
-	void updateSession(const int& status);
+	void updateSession();
 	void endSession();
 
 	void c_reservationInit();

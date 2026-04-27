@@ -10,6 +10,9 @@ class Reception;
 class LoginController;
 class ReceptionController;
 
+class AuthService;
+class ReservationService;
+
 class AppContext : public QObject {
     Q_OBJECT
 public:
@@ -28,24 +31,21 @@ public:
 private:
     void createObjects();
     void setupThreads();
-    void setupConnections();
+    void setupConnections() const;
     void cleanup();
 	void debugConnections();
 
     void demandReception();
 private:
-    // Hilo del modelo
     QThread WorkerThread;
-    
-    // Objetos (raw pointers porque manejamos lifetime manualmente con deleteLater)
-	MainWindow* m_window = nullptr;
-    
-    //Login StackedWidget
+
+    MainWindow* m_window = nullptr;
 	Login* m_loginWidget = nullptr;
-	//Reception StackedWidget
 	Reception* m_receptionWidget = nullptr;
 
-	//Controllers
-    LoginController* m_controller = nullptr;
+    LoginController* m_loginController = nullptr;
 	ReceptionController* m_receptionController = nullptr;
+
+    AuthService* m_authService = nullptr;
+    ReservationService* m_reservationService = nullptr;
 };

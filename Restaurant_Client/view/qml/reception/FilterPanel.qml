@@ -7,7 +7,7 @@ import "generalComponents"
 
 Rectangle {
     id: root
-    width: reception.panel_width + 40
+    width: Reception.panel_width + 40
     height: 650
     topLeftRadius: 10
     topRightRadius: 10
