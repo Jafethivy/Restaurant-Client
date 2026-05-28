@@ -17,6 +17,7 @@ public:
 
 signals:
     void LoginStatus(int area, bool status);
+    void authUsername(QString name);
     void endSession_success();
 
 private:

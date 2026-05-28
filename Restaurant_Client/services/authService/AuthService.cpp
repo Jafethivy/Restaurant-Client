@@ -44,6 +44,7 @@ void AuthService::attemptLogin(const QString& username, const QString& password)
             m_token = token;
             m_username = obj["username"].toString();
             m_area = area;
+            emit authUsername(m_username);
             emit LoginStatus(area, true);
         }
         else {

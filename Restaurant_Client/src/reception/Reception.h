@@ -27,32 +27,32 @@ public:
 	~Reception();
 
 	int panel_width() const { return w_width; }
+	void setUsername(QString username);
 
 	//reservations public
 	void init_reservations(QVariantList reservations);
 	void reservationCreatedQml(QVariantMap n_data);
 	void reservationEditedQml(QVariantMap n_data);
 	void reservationRemoveQml();
-
 	void reservationAdvanced(QVariantList reservations);
+
+	void tablesGetter(QVariantList tables);
+	void tableStatus(QVariantMap table);
 
 public slots:
 	void on_end_session_clicked();
 	void on_reception_button_clicked();
-	void on_config_button_clicked();
 	void on_help_button_clicked();
 	void on_advanced_button_clicked();
 
 	void onReservationCreated(QVariant data);
 	void onReservationEdited(QVariant data);
-	void onReservationRemoved(QVariant index);
 
 	void onAdvancedQuery(QVariant r_data);
 
 	void create_qml();
 	void closeAdvanced();
 	void closeReception();
-	void closeConfig();
 	void closeMenuQml(QWidget* overlay, QQuickWidget* widget, bool& flag);
 
 signals:
@@ -63,12 +63,21 @@ signals:
 	void signalReservationEdited(QVariantMap m_data);
 	void signalReservationRemoved(QVariant index);
 
+	void signalReservationUpdate(QVariant id_resv, int status);
+	void reservationUpdated(int id_resv);
+
 	void signalAdvancedQuery(QVariantMap r_data);
+
+	void signalTablesInit();
+	void reserveTable(int tableId);
+	void occupyTable(int tableId);
+
 private:
 	void resizeEvent(QResizeEvent* event) override;
 
 	//tables
 	void create_qml_tables();
+	void tCreateConnetions();
 
 	//reservations
 	void create_qml_reservations();
@@ -83,12 +92,6 @@ private:
 	void r_create_connections();
 	void showMenu();
 
-	//config
-	void create_qml_config();
-	void showConfig();
-
-	
-
 protected:
 	bool eventFilter(QObject* watched, QEvent* event) override;
 private:
@@ -98,15 +101,12 @@ private:
 	QQuickWidget* m_tables = nullptr;
 
 	QQuickWidget* m_Reception = nullptr;
-	QQuickWidget* m_config = nullptr;
 	QQuickWidget* m_advanced = nullptr;
 
 	QWidget* m_overlay = nullptr;
-	QWidget* m_overlayConfig = nullptr;
 	QWidget* m_overlayAdvanced = nullptr;
 
 	bool m_recepVisible;
-	bool m_configVisible;
 	bool m_advancedVisible;
 	bool qml_exist = false;
 

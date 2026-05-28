@@ -6,6 +6,8 @@ LoginController::LoginController(Login* window,QObject* parent)
 
 	connect(window, &Login::LoginAttempt, this, &LoginController::on_login_attempt);
 
+	connect(this, &LoginController::NoArea,
+		window, &Login::ShowLoginError);
 }
 
 void LoginController::on_login_attempt(const QString& username, const QString& password) {

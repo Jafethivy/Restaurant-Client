@@ -11,6 +11,7 @@
 
 class Login;
 class Reception;
+class Storeroom;
 
 class MainWindow : public QMainWindow
 {
@@ -23,8 +24,10 @@ public:
     //Helpers
     Login* loginWidget() const;
     Reception* receptionWidget() const;
+    Storeroom* storeroomWidget() const;
 
     void screen_area();
+    void setUsername(QString username);
 
     //StackedWidget
     void set_login();
@@ -62,9 +65,12 @@ private:
 
     Login* loginWindow = nullptr;
     Reception* receptionWindow = nullptr;
+    Storeroom* storeroomWindow = nullptr;
 
     int width_screen;
     int height_screen;
+
+    QString nameUser;
 
     struct AreaConfig {
         QString name;

@@ -16,6 +16,7 @@ public:
     void editReservation(QVariantMap m_data);
     void removeReservation(QVariant index);
     void advancedQuery(QVariantMap n_data);
+    void updateReservation(QVariant id_resv, int status);
 
     void setToken(const QString& token);
     void setBaseUrl(const QString& url);
@@ -25,6 +26,7 @@ signals:
     void n_ReservationCreated(QVariantMap m_data);
     void n_ReservationEdited(QVariantMap m_data);
     void reservationAdvanced(QVariantList reservations);
+    void reservationUpdated(int id_resv);
 
 private:
     QNetworkAccessManager* m_manager;

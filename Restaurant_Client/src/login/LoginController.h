@@ -26,6 +26,7 @@ signals:
 	void endSession(const int& status);
 	void endSession_success();
 
+	void NoArea();
 private:
 	Login* m_window = nullptr;
 };

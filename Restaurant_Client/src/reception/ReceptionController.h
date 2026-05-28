@@ -25,13 +25,24 @@ signals:
 	void c_reservationCreated(QVariantMap m_data);
 	void c_reservationEdited(QVariantMap m_data);
 	void c_reservationRemoved(QVariant index);
+	void signalReservationUpdate(QVariant id_resv, int status);
 
 	void c_createdReservationQml(QVariantMap n_data);
 	void c_editedReservationQml(QVariantMap n_data);
+	void reservationUpdated(int id_resv);
 
 	void create_qml();
 	void c_advancedQuery(QVariantMap n_data);
 	void s_reservationsAdvanced(QVariantList reservations);
+
+	void signalTablesInit();
+	void reserveTable(int tableId);
+	void occupyTable(int tableId);
+
+	void tablesGetter(QVariantList tables);
+	void tableStatus(QVariantMap result);
+
+	void reservationOverdue();
 
 private:
 	Reception* m_receptionWidget = nullptr;

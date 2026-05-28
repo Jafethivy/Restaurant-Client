@@ -49,12 +49,7 @@ Rectangle {
         }
     }
 
-    signal reservationRemoved(var index)
-
-    function onDeleteRequested(index, data) {
-        removeReservation(index)
-        reservationRemoved(data)
-    }
+    signal reservationUpdate(var id_resv, int status)
 
     function addReservation(reservation) {
         reservationsModel.append({
@@ -104,26 +99,6 @@ Rectangle {
         reservationsModel.clear()
         if (!list || list.length === 0) {
             console.warn("loadReservations: lista vacía")
-            return
-        }
-        for (var i = 0; i < list.length; i++) {
-            var item = list[i]
-            reservationsModel.append({
-                id_resv:    item.id_resv    ?? "",
-                name_resv:  item.name_resv  ?? "",
-                date_resv:  item.date_resv  ?? "",
-                time_resv:  item.time_resv  ?? "",
-                guest_resv: item.guest_resv ?? 0,
-                status:     item.status     ?? 0
-            })
-        }
-    }
-
-    function loadAdvanced(list) {
-        reservationsModel.clear()
-        root.selectedIndex = -1
-        if (!list || list.length === 0) {
-            console.warn("loadAdvanced: lista vacía")
             return
         }
         for (var i = 0; i < list.length; i++) {
@@ -286,7 +261,7 @@ Rectangle {
                     anchors.left:   parent.left
                     anchors.top:    parent.top
                     anchors.leftMargin: 10
-                    height: 10
+                    height: 20
                     width: 6
                     z: 2
                     color: statusColors.colorForStatus(model.status)
@@ -343,12 +318,12 @@ Rectangle {
                 }
                 
                 Rectangle {
-                    id: deletePanel
+                    id: completePanel
                     anchors.top:    parent.top
                     anchors.bottom: parent.bottom
-                    anchors.right:  parent.right
+                    anchors.right:  cancelPanel.left
                     width: root.selectedIndex === index ? 120 : 0
-                    color: "#e74c3c"
+                    color: "#2ECC71"
                     clip: true
                     z: 1
 
@@ -356,7 +331,7 @@ Rectangle {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "Eliminar"
+                        text: "Completar"
                         color: "white"
                         font { pixelSize: 14; family: "Rockwell"; weight: Font.Normal }
                         visible: root.selectedIndex === index
@@ -365,7 +340,34 @@ Rectangle {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.onDeleteRequested(index, model.id_resv)
+                        onClicked: root.reservationUpdate(model.id_resv, 1)
+                    }
+                }
+
+                Rectangle {
+                    id: cancelPanel
+                    anchors.top:    parent.top
+                    anchors.bottom: parent.bottom
+                    anchors.right:  parent.right
+                    width: root.selectedIndex === index ? 120 : 0
+                    color: "#E74C3C"
+                    clip: true
+                    z: 1
+
+                    Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Cancelar"
+                        color: "white"
+                        font { pixelSize: 14; family: "Rockwell"; weight: Font.Normal }
+                        visible: root.selectedIndex === index
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.reservationUpdate(model.id_resv, 2)
                     }
                 }
 

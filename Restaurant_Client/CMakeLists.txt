@@ -14,6 +14,7 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/view/qt/login
     ${CMAKE_CURRENT_SOURCE_DIR}/view/qt/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/view/qt/reception
+    ${CMAKE_CURRENT_SOURCE_DIR}/view/qt/storeroom
 )
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
@@ -27,6 +28,7 @@ find_package(Qt${QT_VERSION_MAJOR}
         Qml
         Network
         HttpServer
+        WebSockets
 )
 qt_standard_project_setup()
 
@@ -42,6 +44,7 @@ set(VIEW
 
     ${QT_VIEW}/login/Login.ui
     ${QT_VIEW}/reception/Reception.ui
+    ${QT_VIEW}/storeroom/Storeroom.ui
 )
 
 set(LOGIN
@@ -49,6 +52,9 @@ set(LOGIN
 )
 set(RECEPTION
     ${CMAKE_CURRENT_SOURCE_DIR}/src/reception
+)
+set(STOREROOM
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/storeroom
 )
 set(SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/MainWindow.h
@@ -63,6 +69,11 @@ set(SRC
     ${RECEPTION}/Reception.cpp
     ${RECEPTION}/ReceptionController.h
     ${RECEPTION}/ReceptionController.cpp
+
+    ${STOREROOM}/Storeroom.h
+    ${STOREROOM}/Storeroom.cpp
+    ${STOREROOM}/StoreroomController.h
+    ${STOREROOM}/StoreroomController.cpp
 )
 
 set(AUTH_SERVICE
@@ -71,11 +82,23 @@ set(AUTH_SERVICE
 set(RECEPTION_SERVICE
     ${CMAKE_CURRENT_SOURCE_DIR}/services/receptionService
 )
+set(STOREROOM_SERVICE
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/storeroomService
+)
 set(SERVICES
     ${AUTH_SERVICE}/AuthService.h
     ${AUTH_SERVICE}/AuthService.cpp
     ${RECEPTION_SERVICE}/ReservationService.h
     ${RECEPTION_SERVICE}/ReservationService.cpp
+    ${RECEPTION_SERVICE}/TablesService.h
+    ${RECEPTION_SERVICE}/TablesService.cpp
+    ${STOREROOM_SERVICE}/InventoryService.h
+    ${STOREROOM_SERVICE}/InventoryService.cpp
+)
+
+set(WEBSOCKETS
+    ${CMAKE_CURRENT_SOURCE_DIR}/network/WebSocketClient.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/network/WebSocketClient.cpp
 )
 
 set(PROJECT_SOURCES
@@ -85,6 +108,7 @@ set(PROJECT_SOURCES
     ${VIEW}
     ${SRC}
     ${SERVICES}
+    ${WEBSOCKETS}
 )
 qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
@@ -112,6 +136,10 @@ qt_add_qml_module(${PROJECT_NAME}
         view/qml/reception/filterComponents/MiniToggle.qml
         
         view/qml/reception/generalComponents/CloseButton.qml
+
+        view/qml/reception/tableComponents/TablePopup.qml
+
+        view/qml/storeroom/ExpandableCategory.qml
 )
 
 set_target_properties(${PROJECT_NAME}
@@ -129,4 +157,5 @@ target_link_libraries(${PROJECT_NAME}
     Qt::Qml
     Qt::Network
     Qt::HttpServer
+    Qt::WebSockets
 )

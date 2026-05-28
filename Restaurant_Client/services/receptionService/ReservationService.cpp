@@ -137,8 +137,7 @@ void ReservationService::editReservation(QVariantMap m_data){
 // ============================================
 // DELETE /api/reservations/:id
 // ============================================
-void ReservationService::removeReservation(QVariant index)
-{
+void ReservationService::removeReservation(QVariant index){
     int id = index.toInt();
     QNetworkRequest request = buildRequest("/reservations/" + QString::number(id));
 
@@ -182,6 +181,38 @@ void ReservationService::advancedQuery(QVariantMap n_data)
         }
 
         emit reservationAdvanced(reservations);
+        reply->deleteLater();
+        });
+}
+
+// ============================================
+// PUT /api/reservations/update
+// ============================================
+void ReservationService::updateReservation(QVariant id_resv, int status){
+    QVariantMap data;
+    data["id_resv"] = id_resv.toInt();
+    data["status"] = status;
+
+    QNetworkRequest request = buildRequest("/reservations/update");
+    QJsonObject body = variantMapToJsonObject(data);
+
+    QNetworkReply* reply = m_manager->put(
+        request,
+        QJsonDocument(body).toJson(QJsonDocument::Compact)
+    );
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        if (reply->error() != QNetworkReply::NoError) {
+            qDebug() << "[ReservationService] Error updateReservation:" << reply->errorString();
+            reply->deleteLater();
+            return;
+        }
+
+        QByteArray data = reply->readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(data);
+        QVariantMap result = jsonObjectToVariantMap(doc.object());
+        int id = result["id_resv"].toInt();
+        emit reservationUpdated(id);
         reply->deleteLater();
         });
 }

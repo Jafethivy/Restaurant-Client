@@ -1,56 +1,93 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "tableComponents"
 
 Item {
     id: root
     anchors.fill: parent
-    
+
+    // ============================================================
+    // PALETA DE COLORES - QtObject reutilizable
+    // ============================================================
+    QtObject {
+        id: theme
+        readonly property color available:  "#4CAF50"
+        readonly property color reserved:   "#FFC107"
+        readonly property color occupied:   "#F44336"
+        readonly property color unknown:    "#9E9E9E"
+        readonly property color background: "#293651"
+        readonly property color title:      "#DDDBF1"
+        readonly property color tooltipBg:  "#2d2d44"
+        readonly property color white:      "#ffffff"
+        readonly property color shadow:     "#000000"
+    }
+
+    // Propiedades de configuración de animación
     readonly property int stageDelay:    35
     readonly property int stageDuration: 200
 
+    // Función para obtener color según estado
     function getColor(state) {
-        if (state === 0) return "#4CAF50"
-        if (state === 1) return "#FFC107"
-        if (state === 2) return "#F44336"
-        return "#9E9E9E"
+        if (state === 0) return theme.available
+        if (state === 1) return theme.reserved
+        if (state === 2) return theme.occupied
+        return theme.unknown
     }
-
+    // Función para obtener texto de estado
     function getStatusText(state) {
         if (state === 0) return "Disponible"
         if (state === 1) return "Reservado"
         if (state === 2) return "Ocupado"
         return "Desconocido"
     }
-
+    // Modelo de mesas
     ListModel {
         id: tableModel
-        ListElement { state: 0 }
-        ListElement { state: 0 }
-        ListElement { state: 1 }
-        ListElement { state: 0 }
-        ListElement { state: 2 }
-        ListElement { state: 2 }
-        ListElement { state: 1 }
-        ListElement { state: 0 }
-        ListElement { state: 0 }
-        ListElement { state: 0 }
-        ListElement { state: 0 }
-        ListElement { state: 0 }
-        ListElement { state: 1 }
-        ListElement { state: 0 }
-        ListElement { state: 2 }
-        ListElement { state: 2 }
-        ListElement { state: 1 }
-        ListElement { state: 0 }
-        ListElement { state: 0 }
-        ListElement { state: 0 }
+    }
+    // Funcion para cargar mesas (desde base de datos o manual)
+    function loadTables(tablesData) {
+        tableModel.clear()
+        for (var i = 0; i < tablesData.length; i++) {
+            tableModel.append({
+                "tableId": tablesData[i].tableId,
+                "state": tablesData[i].status
+            })
+        }
+    }
+    // Funcion para actualizar el estado de una mesa específica
+    function updateTableState(table) {
+        tableModel.setProperty(table.tableId - 1, "state", table.status)
+    }
+
+    // Función para marcar una mesa como disponible (desde C++)
+    function setTableAvailable(tableId) {
+        updateTableState(tableId, 0)
+    }
+
+    signal reserveTableA(int tableId)
+    signal occupyTableA(int tableId)
+
+    // ============================================================
+    // POPUP EXTERNO - Instancia compartida
+    // ============================================================
+    TablePopup {
+        id: tablePopup
+        anchors.fill: parent 
+
+        onReserveTable: (tableId) => {
+            root.reserveTableA(tableId)
+        }
+
+        onOccupyTable: (tableId) => {
+            root.occupyTableA(tableId)
+        }
     }
 
     Rectangle {
         id: background
         anchors.fill: parent
-        color: "#293651"
+        color: theme.background
         radius: 8
         clip: true
 
@@ -62,7 +99,7 @@ Item {
             Text {
                 text: "Mesas del Restaurante"
                 font { pixelSize: 24; family: "Rockwell"; weight: Font.Normal }
-                color: "#DDDBF1"
+                color: theme.title
                 Layout.alignment: Qt.AlignHCenter
             }
 
@@ -82,11 +119,12 @@ Item {
                         radius: 35
                         color: root.getColor(model.state)
                         border.width: 2
-                        border.color: "#ffffff"
-                        
+                        border.color: theme.white
+
                         opacity: 0
                         scale: 0.7
 
+                        // Animación de entrada escalonada
                         Timer {
                             interval: index * root.stageDelay
                             running: true
@@ -112,23 +150,26 @@ Item {
                             }
                         }
 
+                        // Sombra
                         Rectangle {
                             anchors.fill: parent
                             radius: 35
-                            color: "#000000"
+                            color: theme.shadow
                             opacity: 0.3
                             z: -1
                             anchors.margins: -4
                         }
 
+                        // Número de mesa (usando tableId del modelo)
                         Text {
                             anchors.centerIn: parent
-                            text: index + 1
+                            text: model.tableId
                             font.pixelSize: 20
                             font.bold: true
-                            color: "#ffffff"
+                            color: theme.white
                         }
 
+                        // Tooltip de estado
                         Rectangle {
                             id: statusTooltip
                             anchors.top: parent.bottom
@@ -137,7 +178,7 @@ Item {
                             width: statusText.width + 16
                             height: 24
                             radius: 4
-                            color: "#2d2d44"
+                            color: theme.tooltipBg
                             border.color: tableItem.color
                             border.width: 1
                             opacity: 0
@@ -148,7 +189,7 @@ Item {
                                 anchors.centerIn: parent
                                 text: root.getStatusText(model.state)
                                 font.pixelSize: 11
-                                color: "#ffffff"
+                                color: theme.white
                             }
 
                             Behavior on opacity {
@@ -169,7 +210,9 @@ Item {
                                 tableItem.scale = 1.0
                             }
                             onClicked: {
-                                tableModel.setProperty(index, "state", (model.state + 1) % 3)
+                                tablePopup.tableId = model.tableId
+                                tablePopup.currentState = model.state
+                                tablePopup.open()
                             }
                         }
 
@@ -180,15 +223,16 @@ Item {
                 }
             }
 
+            // Leyenda de estados
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 20
 
                 Repeater {
                     model: [
-                        { color: "#4CAF50", text: "Disponible" },
-                        { color: "#FFC107", text: "Reservado"  },
-                        { color: "#F44336", text: "Ocupado"    }
+                        { color: theme.available, text: "Disponible" },
+                        { color: theme.reserved,  text: "Reservado"  },
+                        { color: theme.occupied,  text: "Ocupado"    }
                     ]
 
                     RowLayout {
@@ -200,7 +244,7 @@ Item {
                         Text {
                             text: modelData.text
                             font { pixelSize: 12; family: "Rockwell"; weight: Font.Normal }
-                            color: "#ffffff"
+                            color: theme.white
                         }
                     }
                 }

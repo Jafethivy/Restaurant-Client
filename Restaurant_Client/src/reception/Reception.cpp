@@ -11,10 +11,8 @@ Reception::~Reception(){
 	m_reservations->deleteLater();
 	m_tables->deleteLater();
 	delete m_Reception;
-	delete m_config;
 	delete m_advanced;
 	m_overlay->deleteLater();
-	m_overlayConfig->deleteLater();
 	m_overlayAdvanced->deleteLater();
 }
 
@@ -29,10 +27,6 @@ bool Reception::eventFilter(QObject* watched, QEvent* event) {
 
 	if (watched == m_overlay && m_recepVisible) {
 		targetMenu = m_Reception;
-		isVisible = true;
-	}
-	else if (watched == m_overlayConfig && m_configVisible) {
-		targetMenu = m_config;
 		isVisible = true;
 	}
 	else if (watched == m_overlayAdvanced && m_advancedVisible) {
@@ -51,9 +45,6 @@ bool Reception::eventFilter(QObject* watched, QEvent* event) {
 	if (!menuRect.contains(globalClick)) {
 		if (targetMenu == m_Reception) {
 			closeReception();
-		}
-		else if (targetMenu == m_config) {
-			closeConfig();
 		}
 		else if (targetMenu == m_advanced) {
 			closeAdvanced();
@@ -74,11 +65,11 @@ void Reception::create_qml() {
 	});
 	QTimer::singleShot(0, this, [this]() {
 		create_qml_Reception();
-		create_qml_config();
 		createQmlAdvanced();
 	});
 	QTimer::singleShot(50, this, [this]() {
 		emit signalReservationInit();
+		emit signalTablesInit();
 	});
 	qml_exist = true;
 }
@@ -100,6 +91,10 @@ void Reception::closeMenuQml(QWidget* overlay, QQuickWidget* widget, bool& flag)
 	anim->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
+void Reception::setUsername(QString username) {
+	ui.label_2->setText(username);
+}
+
 //Slots
 void Reception::on_end_session_clicked() {
 	emit endSession();
@@ -111,15 +106,6 @@ void Reception::on_reception_button_clicked() {
 	}
 	else {
 		closeReception();
-	}
-}
-
-void Reception::on_config_button_clicked() {
-	if (!m_configVisible) {
-		showConfig();
-	}
-	else {
-		closeConfig();
 	}
 }
 
@@ -149,6 +135,15 @@ void Reception::create_qml_tables() {
 	m_tables->setResizeMode(QQuickWidget::SizeRootObjectToView);
 	m_tables->setAttribute(Qt::WA_TranslucentBackground);
 	m_tables->setClearColor(QColor("#dddbf1"));
+
+	m_tables->rootContext()->setContextProperty("r_widget", this);
+
+	connect(m_tables, &QQuickWidget::statusChanged,
+		this, [this](QQuickWidget::Status status) {
+			if (status == QQuickWidget::Ready)
+				tCreateConnetions();
+		});
+
 	m_tables->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/Tables.qml"));
 
 	QLayout* layout = ui.tables_widget->layout();
@@ -157,6 +152,26 @@ void Reception::create_qml_tables() {
 		layout->setContentsMargins(0, 0, 0, 0);
 	}
 	layout->addWidget(m_tables);
+}
+
+void Reception::tCreateConnetions() {
+	QObject* tables = m_tables->rootObject();
+	connect(tables, SIGNAL(reserveTableA(int)),
+		this, SIGNAL(reserveTable(int)));
+	connect(tables, SIGNAL(occupyTableA(int)),
+		this, SIGNAL(occupyTable(int)));
+}
+
+void Reception::tablesGetter(QVariantList tables) {
+	QObject* root = m_tables->rootObject();
+	QMetaObject::invokeMethod(root, "loadTables",
+		Q_ARG(QVariant, QVariant::fromValue(tables)));
+}
+
+void Reception::tableStatus(QVariantMap table) {
+	QObject* root = m_tables->rootObject();
+	QMetaObject::invokeMethod(root, "updateTableState",
+		Q_ARG(QVariant, QVariant::fromValue(table)));
 }
 
 //reservations
@@ -193,11 +208,16 @@ void Reception::create_qml_reservations() {
 void Reception::resv_create_connections() {
 	QObject* o_reservation = m_reservations->rootObject();
 	if (!o_reservation) return;
-	connect(o_reservation, SIGNAL(reservationRemoved(QVariant)), this, SLOT(onReservationRemoved(QVariant)));
-}
-
-void Reception::onReservationRemoved(QVariant index) {
-	emit signalReservationRemoved(index);
+	connect(o_reservation, SIGNAL(reservationUpdate(QVariant, int)),
+		this, SIGNAL(signalReservationUpdate(QVariant, int)));
+	connect(this, &Reception::reservationUpdated,
+        this, [=](int index) {
+            QMetaObject::invokeMethod(
+                o_reservation,
+                "removeReservation",
+                Q_ARG(QVariant, QVariant(index))   // o simplemente Q_ARG(QVariant, index)
+            );
+        });
 }
 
 void Reception::reservationCreatedQml(QVariantMap n_data) {
@@ -220,7 +240,7 @@ void Reception::init_reservations(QVariantList reservations) {
 
 void Reception::reservationAdvanced(QVariantList reservations) {
 	QObject* root = m_reservations->rootObject();
-	QMetaObject::invokeMethod(root, "loadAdvanced",
+	QMetaObject::invokeMethod(root, "loadReservations",
 		Q_ARG(QVariant, QVariant::fromValue(reservations)));
 }
 
@@ -419,56 +439,4 @@ void Reception::showMenu() {
 
 void Reception::closeReception() {
 	closeMenuQml(m_overlay, m_Reception, m_recepVisible);
-}
-
-//config
-void Reception::create_qml_config() {
-	m_overlayConfig = new QWidget(parentWidget());
-	m_overlayConfig->setStyleSheet("background-color: transparent;");
-	m_overlayConfig->hide();
-
-	m_config = new QQuickWidget(nullptr);
-	m_config->setResizeMode(QQuickWidget::SizeRootObjectToView);
-	m_config->setSource(QUrl("qrc:/qt/qml/Restaurant_Client/view/qml/reception/Config.qml"));
-	m_config->setFixedSize(220, 160);
-
-	m_config->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
-
-	m_config->setAttribute(Qt::WA_TranslucentBackground);
-	m_config->setAttribute(Qt::WA_NoSystemBackground);
-	m_config->setClearColor(Qt::transparent);
-
-	m_overlayConfig->installEventFilter(this);
-}
-
-void Reception::showConfig() {
-	QWidget* mainWindow = window();
-	if (!mainWindow) return;
-
-	m_overlayConfig->setGeometry(mainWindow->rect());
-	m_overlayConfig->show();
-	m_overlayConfig->raise();
-
-	m_config->adjustSize();
-	int menuHeight = m_config->height();
-
-	QPoint globalPos = ui.config_button->mapToGlobal(
-		QPoint(1, -menuHeight)
-	);
-	m_config->move(globalPos);
-	m_config->show();
-	m_config->raise();
-
-	m_config->setWindowOpacity(0);
-	auto* anim = new QPropertyAnimation(m_config, "windowOpacity");
-	anim->setDuration(150);
-	anim->setStartValue(0.0);
-	anim->setEndValue(1.0);
-	anim->start(QAbstractAnimation::DeleteWhenStopped);
-
-	m_configVisible = true;
-}
-
-void Reception::closeConfig() {
-	closeMenuQml(m_overlayConfig, m_config, m_configVisible);
 }

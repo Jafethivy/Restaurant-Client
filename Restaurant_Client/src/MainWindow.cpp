@@ -1,7 +1,8 @@
 #include "MainWindow.h"
 
-#include "src/reception/Reception.h"
 #include "src/Login/Login.h"
+#include "src/reception/Reception.h"
+#include "src/storeroom/Storeroom.h"
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent){
@@ -25,6 +26,9 @@ Login* MainWindow::loginWidget() const {
 Reception* MainWindow::receptionWidget() const {
 	return receptionWindow;
 }
+Storeroom* MainWindow::storeroomWidget() const {
+	return storeroomWindow;
+}
 
 void MainWindow::screen_area() {
 	QScreen* screen = QGuiApplication::primaryScreen();
@@ -32,6 +36,10 @@ void MainWindow::screen_area() {
 	width_screen = (screenGeometry.width() - this->width()) / 2;
 	height_screen = (screenGeometry.height() - this->height()) / 2;
 	move(screenGeometry.x() + width_screen, screenGeometry.y() + height_screen);
+}
+
+void MainWindow::setUsername(QString username) {
+	nameUser = username;
 }
 
 //Login and logout
@@ -52,6 +60,13 @@ void MainWindow::logout() {
 	}
 	// Volver a pagina 0 o login
 	// ui.stackedWidget->setCurrentIndex(0);
+	if (m_initialized[3] && storeroomWindow) {
+		set_login();
+		ui.stackedWidget->removeWidget(storeroomWindow);
+		delete storeroomWindow;
+		storeroomWindow = nullptr;
+		m_initialized[3] = false;
+	}
 }
 
 void MainWindow::set_area(const int& areaUserID) {
@@ -63,8 +78,8 @@ void MainWindow::set_area(const int& areaUserID) {
 	QTimer::singleShot(10, this, [this]() {
 		showMaximized();
 		});
-	QTimer::singleShot(10, this, [this]() {
-		emit create_qml();
+	QTimer::singleShot(20, this, [this]() {
+		emit create_qml(); //signal general para saber que ya existe el objeto y cargar datos
 		});
 }
 
@@ -93,8 +108,13 @@ void MainWindow::switchToArea(int areaId) {
 	switch (areaId) {
 	case 1:
 		ui.stackedWidget->setCurrentWidget(receptionWindow);
+		receptionWindow->setUsername(nameUser);
 		break;
 		// case 2: ui.stackedWidget->setCurrentWidget(kitchenWindow); break;
+	case 3:
+		ui.stackedWidget->setCurrentWidget(storeroomWindow);
+		storeroomWindow->setUsername(nameUser);
+		break;
 	}
 }
 
@@ -104,6 +124,13 @@ void MainWindow::setupAreas() {
 			receptionWindow = new Reception(this);
 			emit exist(1);
 			ui.stackedWidget->addWidget(receptionWindow);
+		}
+	};
+	m_areas[3] = {
+		"Storeroom", [this]() {
+			storeroomWindow = new Storeroom(this);
+			emit exist(3);
+			ui.stackedWidget->addWidget(storeroomWindow);
 		}
 	};
 
